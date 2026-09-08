@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+.git/
+.gitignore
+venv/
+*.md
+rapor.md
+test.py
+00_async_demo.py
