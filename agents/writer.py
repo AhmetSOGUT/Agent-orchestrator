@@ -3,12 +3,11 @@ Writer Agent: researcher'lardan gelen dağınık bulguları alır,
 tek bir akıcı ve düzenli rapor haline getirir.
 """
 
-from agents.base import call_agent
-from logging_config import get_logger
+from agents.agent import BaseAgent
 
-logger = get_logger(__name__)
 
-WRITER_SYSTEM_PROMPT = """Sen profesyonel bir rapor yazarısın. Sana bir ana konu ve
+class WriterAgent(BaseAgent):
+    system_prompt = """Sen profesyonel bir rapor yazarısın. Sana bir ana konu ve
 bu konunun farklı alt başlıkları hakkında toplanmış ham araştırma notları verilecek.
 
 GÖREVİN:
@@ -20,20 +19,14 @@ GÖREVİN:
 - Türkçe yaz.
 """
 
+    async def run(self, topic: str, findings: dict[str, str]) -> str:
+        self.logger.info(f"Rapor yazılıyor: '{topic}'")
 
-async def write_report(topic: str, findings: dict[str, str]) -> str:
-    """
-    findings: {"alt başlık": "araştırma bulgusu", ...}
-    Dönüş: tek parça, Markdown formatlı rapor metni.
-    """
-    # Ham bulguları tek bir metin haline getirip modele veriyoruz
-    logger.info(f"Rapor yazılıyor: '{topic}'")
-    
-    findings_text = "\n\n".join(
-        f"## {subtopic}\n{finding}" for subtopic, finding in findings.items()
-    )
+        findings_text = "\n\n".join(
+            f"## {subtopic}\n{finding}" for subtopic, finding in findings.items()
+        )
 
-    user_message = f"""Ana konu: {topic}
+        user_message = f"""Ana konu: {topic}
 
 Toplanan ham araştırma notları:
 
@@ -41,8 +34,6 @@ Toplanan ham araştırma notları:
 
 Bu notlardan yukarıdaki kurallara uygun bir rapor oluştur."""
 
-    report = await call_agent(
-        system_prompt=WRITER_SYSTEM_PROMPT,
-        user_message=user_message,
-    )
-    return report
+        report = await self._call_llm(user_message)
+        self.logger.info("Rapor tamamlandı")
+        return report

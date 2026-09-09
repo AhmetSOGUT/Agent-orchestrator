@@ -4,12 +4,11 @@ Planner Agent: geniş bir konuyu, araştırılabilir alt görevlere böler.
 """
 
 import json
-from agents.base import call_agent
-from logging_config import get_logger
+from agents.agent import BaseAgent
 
-logger = get_logger(__name__)
 
-PLANNER_SYSTEM_PROMPT = """Sen bir araştırma planlayıcısısın. Sana bir konu verilecek.
+class PlannerAgent(BaseAgent):
+    system_prompt = """Sen bir araştırma planlayıcısısın. Sana bir konu verilecek.
 Görevin bu konuyu, her biri bağımsız olarak araştırılabilecek 3 ila 4 alt başlığa bölmek.
 
 KURALLAR:
@@ -19,29 +18,18 @@ KURALLAR:
 - Alt başlıklar kısa ve net olsun (5-8 kelime).
 """
 
+    async def run(self, topic: str) -> list[str]:
+        self.logger.info(f"Planlama başladı: '{topic}'")
 
+        raw_response = await self._call_llm(f"Konu: {topic}")
 
-async def plan(topic: str) -> list[str]:
-    """
-    Bir konu alır, alt görevlerden oluşan bir liste döndürür.
-    """
-    logger.info(f"Planlama başladı: '{topic}'")
-    raw_response = await call_agent(
-        system_prompt=PLANNER_SYSTEM_PROMPT,
-        user_message=f"Konu: {topic}",
-    )
-    
-    # Model bazen JSON'un etrafına ```json ``` gibi kod bloğu ekleyebiliyor,
-    # onu temizliyoruz 
+        cleaned = raw_response.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
-    cleaned = raw_response.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+        try:
+            subtasks = json.loads(cleaned)
+        except json.JSONDecodeError:
+            self.logger.warning(f"Planner JSON parse edilemedi: {raw_response[:200]}")
+            subtasks = [topic]
 
-    try:
-        subtasks = json.loads(cleaned)
-    except json.JSONDecodeError:
-    # Model JSON formatını bozarsa, en azından çökmemesi için tek elemanlı bir liste döndürüyoruz.
-        logger.warning(f"Planner JSON parse edilemedi, ham cevap: {raw_response[:200]}")
-        subtasks = [topic]
-
-    logger.info(f"Planlama tamamlandı: {len(subtasks)} alt görev bulundu")
-    return subtasks
+        self.logger.info(f"Planlama tamamlandı: {len(subtasks)} alt görev bulundu")
+        return subtasks
