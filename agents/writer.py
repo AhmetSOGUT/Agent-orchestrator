@@ -4,6 +4,9 @@ tek bir akıcı ve düzenli rapor haline getirir.
 """
 
 from agents.base import call_agent
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 
 WRITER_SYSTEM_PROMPT = """Sen profesyonel bir rapor yazarısın. Sana bir ana konu ve
 bu konunun farklı alt başlıkları hakkında toplanmış ham araştırma notları verilecek.
@@ -24,6 +27,8 @@ async def write_report(topic: str, findings: dict[str, str]) -> str:
     Dönüş: tek parça, Markdown formatlı rapor metni.
     """
     # Ham bulguları tek bir metin haline getirip modele veriyoruz
+    logger.info(f"Rapor yazılıyor: '{topic}'")
+    
     findings_text = "\n\n".join(
         f"## {subtopic}\n{finding}" for subtopic, finding in findings.items()
     )

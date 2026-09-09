@@ -1,7 +1,14 @@
 import asyncio
+from config import settings
+from logging_config import setup_logging, get_logger
+
+setup_logging(level=settings.log_level)
+logger = get_logger(__name__)
+
 from agents.planner import plan
 from agents.researcher import research_all
 from agents.writer import write_report
+
 
 async def main():
     topic = "Türkiye'de elektrikli araç pazarı"
@@ -20,10 +27,10 @@ async def main():
     print("\n=== FİNAL RAPOR ===\n")
     print(report)
 
-    # Raporu dosyaya da kaydedelim
     with open("rapor.md", "w", encoding="utf-8") as f:
         f.write(report)
     print("\n(Rapor 'rapor.md' dosyasına kaydedildi)")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
