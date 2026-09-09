@@ -1,5 +1,8 @@
 # 🧠 AI Research Orchestrator
 
+[![CI](https://github.com/AhmetSOGUT/Agent-orchestrator/actions/workflows/ci.yml/badge.svg)](https://github.com/AhmetSOGUT/Agent-orchestrator/actions/workflows/ci.yml)
+
+
 A multi-agent AI system that autonomously researches a topic by breaking it down,
 researching sub-topics in parallel, and synthesizing the findings into a coherent report —
 exposed as an async REST API.
